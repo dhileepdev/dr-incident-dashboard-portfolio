@@ -1,4 +1,7 @@
+"use client";
+
 import IncidentCard from "@/components/IncidentCard";
+import IncidentActions from "@/components/IncidentActions";
 import RunbookLink from "@/components/RunbookLink";
 
 type Incident = {
@@ -108,6 +111,11 @@ export default async function IncidentDetailPage({
         </div>
       </div>
       <IncidentCard incident={incident} />
+      <IncidentActions incident={incident} onUpdate={(updated) => {
+        // In a client component with Blob persistence, state updates
+        // are reflected via the PATCH response; re-fetch would be needed
+        // for full sync. For demo purposes, the PATCH response updates locally.
+      }} />
     </main>
   );
 }
