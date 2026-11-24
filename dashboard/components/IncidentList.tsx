@@ -11,11 +11,11 @@ type Incident = {
   createdAt: string;
 };
 
-const SEVERITY_ORDER: { key: string; label: string; chip: string }[] = [
-  { key: "critical", label: "Critical", chip: "chip-bad" },
-  { key: "high", label: "High", chip: "chip-bad" },
-  { key: "medium", label: "Medium", chip: "chip-warn" },
-  { key: "low", label: "Low", chip: "chip-neutral" },
+const SEVERITY_ORDER: { key: string; label: string; chip: string; cls: string }[] = [
+  { key: "critical", label: "Critical", chip: "chip-firing", cls: "sev-critical" },
+  { key: "high", label: "High", chip: "chip-firing", cls: "sev-high" },
+  { key: "medium", label: "Medium", chip: "chip-escalated", cls: "sev-medium" },
+  { key: "low", label: "Low", chip: "chip-resolved", cls: "sev-low" },
 ];
 
 export default function IncidentList({ incidents }: { incidents: Incident[] }) {
@@ -24,12 +24,17 @@ export default function IncidentList({ incidents }: { incidents: Incident[] }) {
     {} as Record<string, number>,
   );
 
+  const total = incidents.length;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-[var(--space-5)]">
       <div className="flex items-baseline gap-3">
-        <span className="num text-[#ffffff] text-xl font-600">{incidents.length}</span>
-        <span className="muted text-[12px]">incidents</span>
+        <span className="incident-list-count">
+          <span className="num">{total}</span>
+          <span className="label">incidents</span>
+        </span>
       </div>
+
       <div className="severity-list">
         {SEVERITY_ORDER.map((s) => {
           const count = bySeverity[s.key] || 0;
@@ -41,14 +46,14 @@ export default function IncidentList({ incidents }: { incidents: Incident[] }) {
           );
         })}
       </div>
+
       {incidents.length === 0 ? (
-        <p className="muted text-[12px] mt-2">No active incidents</p>
+        <div className="empty-state">
+          <span className="dot dot-ok"></span>
+          <p>No active incidents</p>
+        </div>
       ) : (
-        <>
-          {incidents.map((inc) => (
-            <IncidentCard key={inc.id} incident={inc} />
-          ))}
-        </>
+        incidents.map((inc) => <IncidentCard key={inc.id} incident={inc} />)
       )}
     </div>
   );

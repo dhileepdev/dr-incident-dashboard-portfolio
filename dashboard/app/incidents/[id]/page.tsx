@@ -1,5 +1,3 @@
-"use client";
-
 import IncidentCard from "@/components/IncidentCard";
 import IncidentActions from "@/components/IncidentActions";
 import RunbookLink from "@/components/RunbookLink";
@@ -27,12 +25,10 @@ export default async function IncidentDetailPage({
     {
       headers: {
         Accept: "application/vnd.github+json",
-        ...(process.env.GITHUB_PAT
-          ? { Authorization: `Bearer ${process.env.GITHUB_PAT}` }
-          : {}),
+        ...(process.env.GITHUB_PAT ? { Authorization: `Bearer ${process.env.GITHUB_PAT}` } : {}),
       },
       cache: "no-store",
-    }
+    },
   );
 
   let incident: Incident | null = null;
@@ -49,73 +45,92 @@ export default async function IncidentDetailPage({
 
   if (!incident) {
     return (
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Incident Not Found</h1>
-        <p className="text-gray-500">Incident "{id}" could not be found.</p>
+      <main className="shell-content">
+        <div className="panel">
+          <h1>Incident Not Found</h1>
+          <p className="muted">Incident "{id}" could not be found.</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Incident {incident.id}</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white p-4 rounded shadow border">
-          <h2 className="font-semibold mb-2">Details</h2>
-          <dl className="space-y-2 text-sm">
+    <main className="shell-content">
+      <h1>Incident {incident.id}</h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[var(--space-5)] mb-[var(--gap)]">
+        <div className="panel">
+          <h2 className="section-title">Details</h2>
+          <dl className="space-y-[var(--space-3)]">
             <div className="flex justify-between">
-              <dt className="text-gray-500">Title</dt>
-              <dd>{incident.title}</dd>
+              <dt className="muted">Title</dt>
+              <dd className="text-[var(--ink)]">{incident.title}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-gray-500">Service</dt>
-              <dd>{incident.service}</dd>
+              <dt className="muted">Service</dt>
+              <dd className="text-[var(--ink)]">{incident.service}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-gray-500">Source</dt>
-              <dd>{incident.source}</dd>
+              <dt className="muted">Source</dt>
+              <dd className="text-[var(--ink)]">{incident.source}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-gray-500">Created</dt>
-              <dd>{new Date(incident.createdAt).toLocaleString()}</dd>
+              <dt className="muted">Created</dt>
+              <dd className="text-[var(--ink)]">{new Date(incident.createdAt).toLocaleString()}</dd>
             </div>
           </dl>
         </div>
-        <div className="bg-white p-4 rounded shadow border">
-          <h2 className="font-semibold mb-2">Status & Severity</h2>
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`px-2 py-1 rounded text-xs font-medium ${
-              incident.severity === "critical"
-                ? "text-red-600 bg-red-50"
-                : incident.severity === "high"
-                  ? "text-orange-600 bg-orange-50"
-                  : incident.severity === "medium"
-                    ? "text-yellow-600 bg-yellow-50"
-                    : "text-blue-600 bg-blue-50"
-            }`}>
+
+        <div className="panel">
+          <h2 className="section-title">Status & Severity</h2>
+          <div className="flex items-center gap-[var(--space-2)] mb-[var(--space-4)]">
+            <span
+              className={`px-[var(--space-2)] py-[var(--space-1)] border border-[var(--border-width)] rounded-[var(--radius-control)] text-[var(--step--1)] font-medium`}
+              style={{
+                color: incident.severity === "critical" || incident.severity === "high" ? "var(--negative)" : incident.severity === "medium" ? "var(--warning)" : "var(--ink-2)",
+                borderColor: incident.severity === "critical" || incident.severity === "high" ? "var(--negative)" : incident.severity === "medium" ? "var(--warning)" : "var(--border)",
+              }}
+            >
               {incident.severity}
             </span>
-            <span className={`px-2 py-1 rounded text-xs border ${
-              incident.status === "firing"
-                ? "border-red-500 text-red-600 bg-red-50"
-                : incident.status === "resolved"
-                  ? "border-green-500 text-green-600 bg-green-50"
-                  : "border-yellow-500 text-yellow-600 bg-yellow-50"
-            }`}>
+            <span
+              className={`px-[var(--space-2)] py-[var(--space-1)] border border-[var(--border-width)] rounded-[var(--radius-control)] text-[var(--step--1)] font-medium`}
+              style={{
+                color:
+                  incident.status === "firing"
+                    ? "var(--negative)"
+                    : incident.status === "resolved"
+                      ? "var(--positive)"
+                      : "var(--warning)",
+                borderColor:
+                  incident.status === "firing"
+                    ? "var(--negative)"
+                    : incident.status === "resolved"
+                      ? "var(--positive)"
+                      : "var(--warning)",
+              }}
+            >
               {incident.status}
             </span>
           </div>
-          <div className="mt-2">
+          <div>
             <RunbookLink runbook={incident.runbook} />
           </div>
         </div>
       </div>
-      <IncidentCard incident={incident} />
-      <IncidentActions incident={incident} onUpdate={(updated) => {
-        // In a client component with Blob persistence, state updates
-        // are reflected via the PATCH response; re-fetch would be needed
-        // for full sync. For demo purposes, the PATCH response updates locally.
-      }} />
+
+      <div className="panel">
+        <IncidentCard incident={incident} />
+      </div>
+
+      <div className="panel mt-[var(--space-5)]">
+        <IncidentActions
+          incident={incident}
+          onUpdate={() => {
+            // PATCH response updates locally; re-fetch would be needed for full sync.
+          }}
+        />
+      </div>
     </main>
   );
 }

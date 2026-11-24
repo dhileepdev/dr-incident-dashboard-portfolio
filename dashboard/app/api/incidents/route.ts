@@ -1,4 +1,5 @@
 import { getState } from "@/lib/blob";
+import { simulateIncidents, simulateSources } from "@/lib/sim";
 
 type Incident = {
   id: string;
@@ -14,6 +15,7 @@ type Incident = {
 type IncidentsData = {
   incidents: Incident[];
   generatedAt: string;
+  sources?: { name: string; healthy: boolean; lastChecked: string | null }[];
 };
 
 const EMPTY: IncidentsData = {
@@ -49,9 +51,15 @@ export async function GET(_request: Request) {
     return Response.json({
       incidents: parsed.incidents ?? [],
       generatedAt: parsed.generatedAt ?? "—",
+      sources: parsed.sources,
     });
   } catch {
-    const fallback = (await getState<IncidentsData>(EMPTY)) ?? EMPTY;
-    return Response.json(fallback, { status: 503 });
+    // Fall back to simulated data instead of 503
+    const simulated = {
+      incidents: simulateIncidents(),
+      generatedAt: new Date().toISOString(),
+      sources: simulateSources(),
+    };
+    return Response.json(simulated);
   }
 }

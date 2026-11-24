@@ -9,34 +9,53 @@ type Incident = {
   createdAt: string;
 };
 
-const SEVERITY_TEXT: Record<string, string> = {
-  critical: "text-[#e5566f]",
-  high: "text-[#e5566f]",
-  medium: "text-[#d9a441]",
-  low: "text-[#8a8c92]",
+const SEVERITY_CLASS: Record<string, string> = {
+  critical: "sev-critical",
+  high: "sev-high",
+  medium: "sev-medium",
+  low: "sev-low",
+};
+
+const STATUS_CHIP: Record<string, string> = {
+  firing: "chip-firing",
+  resolved: "chip-resolved",
+  escalated: "chip-escalated",
 };
 
 export default function IncidentCard({ incident }: { incident: Incident }) {
+  const severityCls = SEVERITY_CLASS[incident.severity] || SEVERITY_CLASS.low;
+  const chipCls = STATUS_CHIP[incident.status] || "chip-escalated";
+
   return (
-    <div className="incident-card">
-      <div className="incident-head">
-        <span className={`incident-title ${SEVERITY_TEXT[incident.severity] || SEVERITY_TEXT.low}`}>
-          {incident.title}
-        </span>
-        <span className={`status-chip ${incident.status === "firing" ? "chip-bad" : incident.status === "resolved" ? "chip-ok" : "chip-warn"}`}>
-          {incident.status}
-        </span>
+    <div className="incident" role="listitem" tabIndex={-1}>
+      <div className="incident-main">
+        <div className="incident-title">{incident.title}</div>
+        <span className={`incident-severity ${severityCls}`}>{incident.severity}</span>
+        <div className="incident-meta">
+          <span className="num">{incident.service}</span>
+          <span>&bull;</span>
+          <span>{incident.source}</span>
+        </div>
       </div>
-      <div className="incident-meta">{incident.service} &bull; {incident.source}</div>
-      <a
-        href={incident.runbook}
-        target="_blank"
-        rel="noreferrer"
-        className="runbook"
-      >
-        Runbook &rarr;
-      </a>
-      <p className="muted text-[11px] mt-2">{new Date(incident.createdAt).toLocaleString()}</p>
+
+      <span className={`status-chip ${chipCls}`}>{incident.status}</span>
+
+      <div className="incident-actions">
+        {incident.runbook && (
+          <a
+            href={incident.runbook}
+            target="_blank"
+            rel="noreferrer"
+            className="runbook"
+          >
+            Runbook &rarr;
+          </a>
+        )}
+      </div>
+
+      <p className="incident-time">
+        {new Date(incident.createdAt).toLocaleString()}
+      </p>
     </div>
   );
 }
