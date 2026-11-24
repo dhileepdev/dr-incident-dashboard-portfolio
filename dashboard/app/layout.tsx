@@ -9,40 +9,63 @@ export const metadata = {
   description: "Live incidents, alert source health, and ack/resolve/escalate actions",
 };
 
-const RailItem = ({ active, label, href, icon }: { active?: boolean; label: string; href: string; icon: React.ReactNode }) => (
-  <a
-    href={href}
-    title={label}
-    className={`rail-item ${active ? "active" : ""}`}
-    aria-label={label}
-  >
-    {icon}
-  </a>
-);
-
-const ICONS: Record<string, React.ReactNode> = {
-  overview: <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3" /></svg>,
-  incidents: <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
-  sources: <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V5a2 2 0 012-2h6a2 2 0 012 2v2a2 2 0 002 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>,
-  runbooks: <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-};
+const RAIL: { key: string; label: string; href: string; icon: React.ReactNode }[] = [
+  {
+    key: "overview",
+    label: "Overview",
+    href: "/",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+  },
+  {
+    key: "incidents",
+    label: "Incidents",
+    href: "/incidents",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
+  },
+  {
+    key: "sources",
+    label: "Sources",
+    href: "/sources",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" /></svg>,
+  },
+  {
+    key: "runbooks",
+    label: "Runbooks",
+    href: "/runbooks",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>,
+  },
+];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${publicSans.variable} ${jetbrainsMono.variable} antialiased selection:bg-[#4a8ad6] selection:text-white`}>
         <nav className="shell-rail" aria-label="Main navigation">
-          <div className="rail-mark">
-            <span className="text-[12px] font-700 text-[#ffffff] tracking-[-0.02em]">DC</span>
-          </div>
+          <div className="rail-mark">DC</div>
           <div className="rail-nav">
-            <RailItem active label="Overview" href="/" icon={ICONS.overview} />
-            <RailItem label="Incidents" href="/incidents" icon={ICONS.incidents} />
-            <RailItem label="Sources" href="/sources" icon={ICONS.sources} />
-            <RailItem label="Runbooks" href="/runbooks" icon={ICONS.runbooks} />
+            {RAIL.map((item) => (
+              <a
+                key={item.key}
+                href={item.href}
+                className="rail-item"
+                aria-label={item.label}
+                title={item.label}
+              >
+                {item.icon}
+                <span className="label">{item.label}</span>
+              </a>
+            ))}
           </div>
           <div className="rail-utils">
-            <RailItem label="Settings" href="/settings" icon={ICONS.runbooks} />
+            <a
+              href="/settings"
+              className="rail-item"
+              aria-label="Settings"
+              title="Settings"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+              <span className="label">Settings</span>
+            </a>
           </div>
         </nav>
         <main className="shell-content">{children}</main>

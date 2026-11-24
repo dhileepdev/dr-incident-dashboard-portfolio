@@ -1,12 +1,11 @@
 export default function RunbookLink({ runbook }: { runbook: string }) {
+  const slug = runbook.replace("runbooks/", "").replace(".md", "");
   return (
     <a
-      href={`/${runbook.replace("runbooks/", "")}`}
-      target="_blank"
-      rel="noreferrer"
-      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+      href={`/runbooks/${slug}`}
+      className="runbook"
     >
-      <span>📄</span> {runbook.split("/").pop()}
+      {slug}
     </a>
   );
 }

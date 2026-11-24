@@ -53,18 +53,23 @@ export default function IncidentActions({
   }
 
   return (
-    <div className="space-y-3">
-      <p className="muted text-[11px]">Current status: <span className="text-[#ffffff] font-medium">{incident.status}</span></p>
+    <div className="space-y-[var(--space-3)]">
+      <p className="muted">
+        Current status:{" "}
+        <span className="text-[var(--ink)] font-medium">{incident.status}</span>
+      </p>
       <div className="flex flex-wrap gap-2">
         {STATUS_ACTIONS.map((action) => {
           const isUpdating = updating.has(action.status);
           const isCurrent = incident.status === action.status;
+          const disabled = isCurrent || isUpdating;
           return (
             <button
               key={action.status}
-              onClick={() => (isCurrent || isUpdating ? undefined : handleStatusChange(action.status))}
-              disabled={isCurrent || isUpdating}
-              className={`btn-text ${isCurrent ? "text-[#8a8c92] underline" : ""}`}
+              onClick={() => (disabled ? undefined : handleStatusChange(action.status))}
+              disabled={disabled}
+              aria-busy={isUpdating}
+              className="btn-text"
             >
               {isUpdating ? "…" : action.label}
             </button>

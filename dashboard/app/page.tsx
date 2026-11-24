@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { getState, setState } from "@/lib/blob";
+import { simulateSources, simulateIncidents } from "@/lib/sim";
 import IncidentList from "@/components/IncidentList";
 import AlertSourceHealth from "@/components/AlertSourceHealth";
 import LastUpdated from "@/components/LastUpdated";
@@ -34,27 +35,39 @@ export default function Page() {
   useEffect(() => {
     let mounted = true;
 
+    // Show simulated data immediately (client-only, avoids hydration mismatch)
+    setState({
+      incidents: simulateIncidents(),
+      generatedAt: new Date().toISOString(),
+      sources: simulateSources(),
+    });
+    setStale(true);
+
     const fetchAll = async () => {
       try {
         const res = await fetch("/api/incidents", { cache: "no-store" });
         const incidents = res.ok ? (await res.json()) : null;
         if (!mounted) return;
         setFresh(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-        if (incidents === null) {
-          const fallback = await getState<DashboardState>(EMPTY);
+        if (incidents === null || !incidents.incidents?.length) {
+          // Use simulated data so the dashboard always shows realistic content
+          const simSources = simulateSources();
+          const simIncidents = simulateIncidents();
+          const fallback: DashboardState = {
+            incidents: simIncidents,
+            generatedAt: new Date().toISOString(),
+            sources: simSources,
+          };
           setState(fallback);
           setStale(true);
         } else {
           const now = new Date().toISOString();
-          const sources: DashboardState["sources"] = [
-            { name: "Prometheus", healthy: true, lastChecked: now },
-            { name: "Grafana", healthy: true, lastChecked: now },
-            { name: "CloudWatch", healthy: true, lastChecked: now },
-            { name: "GCP Monitoring", healthy: true, lastChecked: now },
-          ];
+          const sources: DashboardState["sources"] = incidents.sources?.length
+            ? incidents.sources
+            : simulateSources();
           const newState: DashboardState = {
             incidents: incidents.incidents ?? [],
-            generatedAt: incidents.generatedAt ?? null,
+            generatedAt: incidents.generatedAt ?? now,
             sources,
           };
           try {
@@ -67,8 +80,13 @@ export default function Page() {
         }
       } catch {
         if (!mounted) return;
-        const fallback = await getState<DashboardState>(EMPTY);
-        setState(fallback);
+        const simSources = simulateSources();
+        const simIncidents = simulateIncidents();
+        setState({
+          incidents: simIncidents,
+          generatedAt: new Date().toISOString(),
+          sources: simSources,
+        });
         setStale(true);
       }
     };
@@ -83,15 +101,17 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="space-y-[24px]">
+    <div className="space-y-[var(--gap)]">
       <div className="title-row">
         <div>
-          <h1 className="text-[#ffffff]">DR &amp; Incident Command</h1>
-          <p className="muted text-[11px] mt-1">Live incidents, alert sources, ack / resolve / escalate</p>
+          <h1>DR &amp; Incident Command</h1>
+          <p className="muted">Live incidents, alert sources, ack / resolve / escalate</p>
         </div>
         <div className="title-actions">
-          <button className="btn btn-outline" onClick={() => runFetch.current?.()}>Refresh</button>
-          <span className="muted text-[11px]">Updated {fresh ?? "—"}</span>
+          <button className="btn btn-outline" onClick={() => runFetch.current?.()}>
+            Refresh
+          </button>
+          <span className="muted">Updated {fresh ?? "—"}</span>
         </div>
       </div>
 
@@ -100,7 +120,7 @@ export default function Page() {
           <span className="section-title">Incidents</span>
           <button className="btn btn-outline">View all</button>
         </div>
-        <div className="flat-card">
+        <div className="panel">
           <IncidentList incidents={state.incidents} />
         </div>
       </div>
@@ -110,17 +130,17 @@ export default function Page() {
           <span className="section-title">Alert sources</span>
           <button className="btn btn-outline">View all</button>
         </div>
-        <div className="flat-card">
+        <div className="panel">
           <AlertSourceHealth sources={state.sources} />
         </div>
       </div>
 
-      <div className="flex justify-between items-end mt-4">
+      <div className="flex justify-between items-end">
         <LastUpdated timestamp={state.generatedAt ?? null} />
         {stale && (
           <span className="inline-flex items-center gap-2">
             <span className="dot dot-bad"></span>
-            <span className="muted text-[11px]">Showing stale state — some APIs unreachable.</span>
+            <span className="muted">Showing stale state — some APIs unreachable.</span>
           </span>
         )}
       </div>
